@@ -251,7 +251,9 @@ class MainActivity : AppCompatActivity() {
         val details = mutableMapOf<String, String>()
 
         fun extract(cssClass: String, label: String) {
-            Regex("""class="$cssClass"[^>]*>.*?<span>([^<]+)</span>""", RegexOption.DOT_MATCHES_ALL)
+            // HTML del plugin: <div class="cssClass"><span>Label: </span><span>Valor</span></div>
+            // Cal saltar el primer <span>...</span> i agafar el segon
+            Regex("""class="$cssClass"[^>]*><span>[^<]*</span><span>([^<]+)</span>""")
                 .find(html)?.groupValues?.get(1)?.trim()
                 ?.takeIf { it.isNotEmpty() }
                 ?.let { details[label] = it }
