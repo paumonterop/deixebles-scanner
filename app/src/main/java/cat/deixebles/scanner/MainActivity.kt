@@ -252,8 +252,9 @@ class MainActivity : AppCompatActivity() {
 
         fun extract(cssClass: String, label: String) {
             // HTML del plugin: <div class="cssClass"><span>Label: </span><span>Valor</span></div>
-            // Cal saltar el primer <span>...</span> i agafar el segon
-            Regex("""class="$cssClass"[^>]*><span>[^<]*</span><span>([^<]+)</span>""")
+            // Regex robust: salta el primer span (label) i captura el segon (valor)
+            // Admet espais/salts de línia entre spans
+            Regex("""class="$cssClass"[^>]*>\s*<span>[^<]*</span>\s*<span>([^<]+)</span>""")
                 .find(html)?.groupValues?.get(1)?.trim()
                 ?.takeIf { it.isNotEmpty() }
                 ?.let { details[label] = it }
@@ -261,16 +262,16 @@ class MainActivity : AppCompatActivity() {
 
         when (scanStatus) {
             ScanStatus.VALID -> {
-                // Cas verd: mostra dades completes de la comanda
-                extract("qrcet_order_number",  "Comanda #")
-                extract("qrcet_customer_name", "Client")
+                // qrcet_order_number ara conté "#9484 Èlia Rifà Grajera"
+                extract("qrcet_order_number",  "Comanda")
                 extract("qrcet_order_date",    "Data")
                 extract("qrcet_product_name",  "Producte")
                 extract("qrcet_product_sku",   "SKU")
                 extract("qrcet_product_descr", "Descripció")
             }
             ScanStatus.ALREADY_USED -> {
-                // Cas groc: mostra producte, descripció, referència i data de validació
+                // Cas groc: comanda+client, producte, referència i data de validació
+                extract("qrcet_order_number",    "Comanda")
                 extract("qrcet_product_name",    "Producte")
                 extract("qrcet_product_descr",   "Descripció")
                 extract("qrcet_ref",             "Referència")
