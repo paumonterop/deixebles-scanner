@@ -199,7 +199,7 @@ class MainActivity : AppCompatActivity() {
             setDesiredBarcodeFormats(ScanOptions.QR_CODE)
             setPrompt("Apunta al QR de l'entrada")
             setBeepEnabled(true)
-            setOrientationLocked(false)
+            setOrientationLocked(true)  // bloqueja en vertical (segueix l'orientació de l'activitat)
         }
         scanLauncher.launch(options)
     }
