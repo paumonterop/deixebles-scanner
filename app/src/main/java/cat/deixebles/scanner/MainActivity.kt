@@ -199,7 +199,7 @@ class MainActivity : AppCompatActivity() {
             setDesiredBarcodeFormats(ScanOptions.QR_CODE)
             setPrompt("Apunta al QR de l'entrada")
             setBeepEnabled(true)
-            setOrientationLocked(true)
+            setOrientationLocked(false)
         }
         scanLauncher.launch(options)
     }
@@ -330,82 +330,53 @@ class MainActivity : AppCompatActivity() {
             ScanStatus.INVALID      -> "ENTRADA NO VÀLIDA"
         }
 
-        // Layout horitzontal: esquerra (emoji+estat) | dreta (detalls)
+        // Layout vertical
         val scroll = ScrollView(this).apply { setBackgroundColor(bgColor) }
+        val root = col(bgColor, dp(24), dp(48), dp(24), dp(32))
 
-        val outerRow = LinearLayout(this).apply {
-            orientation = LinearLayout.HORIZONTAL
-            setBackgroundColor(bgColor)
-            setPadding(dp(28), dp(28), dp(28), dp(28))
-            layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.MATCH_PARENT,
-                LinearLayout.LayoutParams.MATCH_PARENT
-            )
-        }
+        // Emoji + text gran
+        root.addView(txt(emoji, 80f, 0xFFFFFFFF.toInt(), Gravity.CENTER))
+        root.addView(txt(mainText, 32f, accentColor, Gravity.CENTER).apply {
+            typeface = android.graphics.Typeface.DEFAULT_BOLD
+            (layoutParams as LinearLayout.LayoutParams).bottomMargin = dp(8)
+        })
+        root.addView(txt(statusText, 18f, subColor, Gravity.CENTER).apply {
+            (layoutParams as LinearLayout.LayoutParams).bottomMargin = dp(28)
+        })
 
-        // ── Columna esquerra ──────────────────────────────────────────────────
-        val leftCol = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1f).also {
-                it.marginEnd = dp(24)
+        // Detalls
+        if (details.isNotEmpty()) {
+            root.addView(View(this).apply {
+                setBackgroundColor(sepColor)
+                layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.MATCH_PARENT, dp(1)
+                ).also { it.bottomMargin = dp(24) }
+            })
+
+            details.forEach { (label, value) ->
+                root.addView(txt(label.uppercase(), 13f, 0xFF667766.toInt()).apply {
+                    (layoutParams as LinearLayout.LayoutParams).bottomMargin = dp(4)
+                })
+                root.addView(txt(value, 21f, 0xFFEEEEEE.toInt()).apply {
+                    typeface = android.graphics.Typeface.DEFAULT_BOLD
+                    (layoutParams as LinearLayout.LayoutParams).bottomMargin = dp(18)
+                })
             }
         }
 
-        leftCol.addView(txt(emoji, 72f, 0xFFFFFFFF.toInt(), Gravity.CENTER))
-        leftCol.addView(txt(mainText, 28f, accentColor, Gravity.CENTER).apply {
-            typeface = android.graphics.Typeface.DEFAULT_BOLD
-            (layoutParams as LinearLayout.LayoutParams).topMargin = dp(8)
-        })
-        leftCol.addView(txt(statusText, 16f, subColor, Gravity.CENTER).apply {
-            (layoutParams as LinearLayout.LayoutParams).topMargin = dp(6)
-        })
-
         // Botó escanejar
-        leftCol.addView(btn("📷  Escanejar una altra") {
+        root.addView(btn("📷  Escanejar una altra entrada") {
             window.clearFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN)
             launchScanner()
         }.apply {
-            (layoutParams as LinearLayout.LayoutParams).topMargin = dp(28)
+            (layoutParams as LinearLayout.LayoutParams).topMargin = dp(24)
         })
-        leftCol.addView(txt("Tornar a l'inici", 14f, 0xFF444466.toInt(), Gravity.CENTER).apply {
-            (layoutParams as LinearLayout.LayoutParams).topMargin = dp(14)
+        root.addView(txt("Tornar a l'inici", 14f, 0xFF444466.toInt(), Gravity.CENTER).apply {
+            (layoutParams as LinearLayout.LayoutParams).topMargin = dp(16)
             setOnClickListener { showHome() }
         })
 
-        outerRow.addView(leftCol)
-
-        // Separador vertical
-        outerRow.addView(View(this).apply {
-            setBackgroundColor(sepColor)
-            layoutParams = LinearLayout.LayoutParams(dp(1), LinearLayout.LayoutParams.MATCH_PARENT).also {
-                it.marginEnd = dp(24)
-            }
-        })
-
-        // ── Columna dreta: detalls ─────────────────────────────────────────────
-        val rightCol = LinearLayout(this).apply {
-            orientation = LinearLayout.VERTICAL
-            gravity = Gravity.CENTER_VERTICAL
-            layoutParams = LinearLayout.LayoutParams(0, LinearLayout.LayoutParams.MATCH_PARENT, 1.4f)
-        }
-
-        if (details.isNotEmpty()) {
-            details.forEach { (label, value) ->
-                rightCol.addView(txt(label.uppercase(), 11f, 0xFF667766.toInt()).apply {
-                    (layoutParams as LinearLayout.LayoutParams).bottomMargin = dp(2)
-                })
-                rightCol.addView(txt(value, 19f, 0xFFEEEEEE.toInt()).apply {
-                    typeface = android.graphics.Typeface.DEFAULT_BOLD
-                    (layoutParams as LinearLayout.LayoutParams).bottomMargin = dp(14)
-                })
-            }
-        } else {
-            rightCol.addView(txt("—", 24f, 0xFF333355.toInt(), Gravity.CENTER))
-        }
-
-        outerRow.addView(rightCol)
-        scroll.addView(outerRow)
+        scroll.addView(root)
         setContentView(scroll)
     }
 
